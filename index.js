@@ -25,46 +25,51 @@ const getProxyList = async () => new Promise(async (resolve, reject) => {
 })
 
 /**
- * Fetches market data from Binance API.
- * @param {string} pair - The trading pair symbol.
- * @param {string} timeframe - The interval of the data (e.g., '1m', '5m', '1h').
- * @param {number} lookback - The number of intervals to look back.
- * @param {string} proxy - The proxy server to use for the request.
- * @returns {Promise<Object>} - The response object containing the status code and market data.
+ * Calculates an array of timestamps based on the specified timeframe and lookback.
+ * @param {string} timeframe - The timeframe for each timestamp (e.g., '1h', '1d', '1w').
+ * @param {number} lookback - The number of timestamps to generate.
+ * @returns {number[]} - An array of timestamps.
  */
-getMarketHistory = async (pair, timeframe, lookback = 1, proxy) => {
-  const hoursSequence = [], ohlcDataSequence = []
+const getTimeLookback = (timeframe, lookback) => {
+  let hoursSequence = []
   const hoursData = { '1h': 1, '2h': 2, '4h': 4, '6h': 6, '8h': 8, '12h': 12, '1d': 24, '3d': 72, '1w': 168, '1M': 720 }
   const hoursInPoint = hoursData[timeframe] * 3600000 * 1000
   const hoursTimeNow = new Date().getTime()
   for (let i = 0; i < lookback; i++) {
     hoursSequence.push(hoursTimeNow - (hoursInPoint * i))
   }
-  let proxyData = proxy[Math.floor(Math.random() * proxy.length)]
-  for (let hours of hoursSequence) {
-    let requestSuccess = false
-    while (!(requestSuccess)) {
-      try {
-        const proxyAgent = new SocksProxyAgent(`socks5://${proxyData}`)
-        const binanceUrl = `https://www.binance.me/fapi/v1/markPriceKlines?symbol=${pair}&limit=1000&interval=${timeframe}&endTime=${hours}`
-        console.log(`Connecting to ${binanceUrl} using proxy ${proxyData}`)
-        const { status: statusCode, data: dataMarket } = await axios.get(binanceUrl, { httpAgent: proxyAgent, httpsAgent: proxyAgent })
-        console.log(dataMarket)
-        if (statusCode === 200) {
-          if (dataMarket.length > 0) {
-            ohlcDataSequence.push(...dataMarket)
-          } else {
-            break
-          }
-          requestSuccess = true
-        }
-      } catch (err) {
-        proxyData = proxy[Math.floor(Math.random() * proxy.length)]
-        console.log(`ERROR: Failed Fetch Data ${pair} - ${err.message}`)
+  const hoursMin2015 = new Date('2000-01-01T00:00:00.000Z').getTime()
+  hoursSequence = hoursSequence.filter((x) => x > hoursMin2015)
+  return hoursSequence
+}
+
+/**
+ * Retrieves the OHLC data for the specified trading pair and timeframe.
+ * @param {string} pair - The trading pair (e.g., 'BTCUSDT', 'ETHUSDT').
+ * @param {string} timeframe - The timeframe for each timestamp (e.g., '1h', '1d', '1w').
+ * @param {number} lookback - The number of timestamps to generate.
+ * @param {string[]} proxy - An array of proxy servers. // If you want to use proxy
+ */
+getMarketHistory = async (pair, timeframe, lookback, proxy = null) => {
+  let proxyData = proxy ? proxy[Math.floor(Math.random() * proxy.length)] : []
+  let requestSuccess = false, requestData = []
+  while (!(requestSuccess)) {
+    try {
+      const proxyAgent = new SocksProxyAgent(`socks5://${proxyData}`)
+      const binanceUrl = `https://www.binance.me/fapi/v1/markPriceKlines?symbol=${pair}&limit=1000&interval=${timeframe}&endTime=${lookback}`
+      const binanceProxy = proxy ? { httpAgent: proxyAgent, httpsAgent: proxyAgent } : ''
+      const { status: statusCode, data: dataMarket } = await axios.get(binanceUrl, binanceProxy)
+      console.log(`- Fetching Data ${pair} - ${statusCode}`)
+      if (statusCode === 200) {
+        requestData.push(...dataMarket)
+        requestSuccess = true
       }
+    } catch (err) {
+      proxyData = proxy ? proxy[Math.floor(Math.random() * proxy.length)] : []
+      console.log(`ERROR: Failed Fetch Data ${pair} - ${err.message}`)
     }
   }
-  return []
+  return requestData
 }
 
 /**
@@ -72,17 +77,27 @@ getMarketHistory = async (pair, timeframe, lookback = 1, proxy) => {
  */
 const main = async () => {
   try {
+    if (!(fs.existsSync('./data'))) fs.mkdirSync('./data')
     const listPair = ['BTCUSDT', 'ETHUSDT']
-    const listProxy = await getProxyList()
-    if (listProxy) {
+    const resListProxy = await getProxyList()
+    if (resListProxy) {
       for (let pair of listPair) {
         try {
-          const resMarketData = await getMarketHistory(pair, timeframe, 99999, listProxy)
-          if (resMarketData.length > 0) {
-            if (!(fs.existsSync('./data'))) {
-              await fs.mkdirSync('./data')
+          const resTimelookback = getTimeLookback(timeframe, 99999)
+          for (lookback of resTimelookback) {
+            const resMarketHistory = await getMarketHistory(pair, timeframe, lookback, resListProxy)
+            if (resMarketHistory.length > 0) {
+              const firstDate = new Date(resMarketHistory[resMarketHistory.length - 1][6]).toISOString().split('T')[0]
+              const filename = `./data/${pair}-${timeframe}-${firstDate}.json`
+              if (!(fs.existsSync(filename))) {
+                await fs.writeJson(filename, resMarketHistory)
+                console.log(`- Data saved to ${filename}`)
+              } else {
+                console.log(`- Data already exists for ${pair} at ${filename}`)
+              }
+            } else {
+              break
             }
-            await fs.writeJsonSync(`./data/${pair}-${timeframe}.json`, resMarketData, { spaces: 2 })
           }
         } catch (err) {
           console.error(`ERROR: Failed to fetch market history data for ${pair}: ${err.message}`)
