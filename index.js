@@ -40,9 +40,9 @@ getMarketHistory = async (pair, timeframe, lookback = 1, proxy) => {
   for (let i = 0; i < lookback; i++) {
     hoursSequence.push(hoursTimeNow - (hoursInPoint * i))
   }
+  let proxyData = proxy[Math.floor(Math.random() * proxy.length)]
   for (let hours of hoursSequence) {
     let requestSuccess = false
-    const proxyData = proxy[Math.floor(Math.random() * proxy.length)]
     while (!(requestSuccess)) {
       try {
         const proxyAgent = new SocksProxyAgent(`socks5://${proxyData}`)
@@ -59,6 +59,7 @@ getMarketHistory = async (pair, timeframe, lookback = 1, proxy) => {
           requestSuccess = true
         }
       } catch (err) {
+        proxyData = proxy[Math.floor(Math.random() * proxy.length)]
         console.log(`ERROR: Failed Fetch Data ${pair} - ${err.message}`)
       }
     }
