@@ -87,13 +87,15 @@ const main = async () => {
           for (lookback of resTimelookback) {
             const resMarketHistory = await getMarketHistory(pair, timeframe, lookback, resListProxy)
             if (resMarketHistory.length > 0) {
+              const maxDate = new Date().getTime() - (10 * 24 * 60 * 60 * 1000)
               const firstDate = new Date(resMarketHistory[resMarketHistory.length - 1][6]).toISOString().split('T')[0]
               const filename = `./data/${pair}-${timeframe}-${firstDate}.json`
-              if (!(fs.existsSync(filename))) {
+              if (maxDate > firstDate) {
                 await fs.writeJson(filename, resMarketHistory)
                 console.log(`- Data saved to ${filename}`)
               } else {
                 console.log(`- Data already exists for ${pair} at ${filename}`)
+                break
               }
             } else {
               break
