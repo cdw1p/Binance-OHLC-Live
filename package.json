@@ -18,6 +18,7 @@
   "homepage": "https://github.com/cdw1p/Binance-OHLC-Live#readme",
   "dependencies": {
     "axios": "^1.6.7",
-    "fs-extra": "^11.2.0"
+    "fs-extra": "^11.2.0",
+    "socks-proxy-agent": "^8.0.2"
   }
 }
