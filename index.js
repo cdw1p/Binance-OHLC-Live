@@ -42,9 +42,9 @@ getMarketHistory = async (pair, timeframe, lookback = 1, proxy) => {
   }
   for (let hours of hoursSequence) {
     let requestSuccess = false
+    const proxyData = proxy[Math.floor(Math.random() * proxy.length)]
     while (!(requestSuccess)) {
       try {
-        const proxyData = proxy[Math.floor(Math.random() * proxy.length)]
         const proxyAgent = new SocksProxyAgent(`socks5://${proxyData}`)
         const binanceUrl = `https://www.binance.me/fapi/v1/markPriceKlines?symbol=${pair}&limit=1000&interval=${timeframe}&endTime=${hours}`
         console.log(`Connecting to ${binanceUrl} using proxy ${proxyData}`)
