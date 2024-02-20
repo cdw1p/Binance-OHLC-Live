@@ -21,10 +21,11 @@ jobs:
         fetch-depth: 0
 
     - name: GitHub Push
-      uses: ad-m/github-push-action@v0.6.0
+      uses: ad-m/github-push-action@master
       with:
         force: true
         directory: "."
+        branch: main
         ref: ${{ github.head_ref }}
         github_token: ${{ secrets.GITHUB_TOKEN }}
 
