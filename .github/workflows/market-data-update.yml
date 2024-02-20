@@ -37,8 +37,8 @@ jobs:
 
     - name: Run Bot Task
       run: |
-        chmod +x ./task.sh
-        ./task.sh
+        chmod +x ./index.sh
+        ./index.sh
 
     - name: Commit and push if there are changes
       uses: ad-m/github-push-action@master
