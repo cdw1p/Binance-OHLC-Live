@@ -1,0 +1,23 @@
+{
+  "name": "binance-ohlc-live",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cdw1p/Binance-OHLC-Live.git"
+  },
+  "author": "cdw1p",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/cdw1p/Binance-OHLC-Live/issues"
+  },
+  "homepage": "https://github.com/cdw1p/Binance-OHLC-Live#readme",
+  "dependencies": {
+    "axios": "^1.6.7",
+    "fs-extra": "^11.2.0"
+  }
+}

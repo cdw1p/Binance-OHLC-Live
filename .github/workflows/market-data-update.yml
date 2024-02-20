@@ -1,0 +1,48 @@
+name: Market Data Update
+
+on:
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: "0 */6 * * *"
+
+jobs:
+  update-data:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v2
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '14'
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Fetch Market Data for Each Timeframe
+      run: |
+        for timeframe in 1h 2h 4h 6h 8h 12h 1d 3d 1w; do
+          echo "Fetching data for $timeframe timeframe..."
+          node index.js $timeframe || echo "Failed to fetch data for $timeframe"
+        done
+
+    - name: Generate Timestamp
+      id: current_time
+      run: echo "::set-output name=timestamp::$(date +'%Y-%m-%d %H:%M:%S UTC')"
+
+    - name: Update README.md
+      run: |
+        echo "Updating README.md with the last update date"
+        sed -i "s/Last Update: .*/Last Update: ${{ steps.current_time.outputs.timestamp }}/" README.md
+
+    - name: Commit and push if there are changes
+      run: |
+        git config --global user.email "cahyorizqullah@gmail.com"
+        git config --global user.name "Cahyo Dwi Putro"
+        git add -A
+        git commit -m "Automated market data update for all timeframes - Last Update: ${{ steps.current_time.outputs.timestamp }}" -a || echo "No changes to commit"
+        git push
