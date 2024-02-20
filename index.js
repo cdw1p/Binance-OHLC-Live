@@ -23,7 +23,7 @@ getMarketHistory = async (pair, timeframe, lookback = 1) => {
       hoursSequence.push(hoursTimeNow - (hoursInPoint * i))
     }
     for (let hours of hoursSequence) {
-      const { status: statusCode, data: dataMarket } = await axios.get(`https://www.binance.me/fapi/v1/markPriceKlines?symbol=${pair}&limit=1000&interval=${timeframe}&endTime=${hours}`)
+      const { status: statusCode, data: dataMarket } = await axios.get(`https://www.binance.com/fapi/v1/markPriceKlines?symbol=${pair}&limit=1000&interval=${timeframe}&endTime=${hours}`)
       if (statusCode === 200) {
         if (dataMarket.length > 0) {
           ohlcDataSequence.push(...dataMarket)

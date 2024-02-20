@@ -12,8 +12,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Check out repository
-      uses: actions/checkout@v2
+    - uses: actions/checkout@v2      
+      with:
+        persist-credentials: false
+        fetch-depth: 0
 
     - name: Set up Node.js
       uses: actions/setup-node@v2
@@ -33,6 +35,13 @@ jobs:
     - name: Generate Timestamp
       id: current_time
       run: echo "::set-output name=timestamp::$(date +'%Y-%m-%d %H:%M:%S UTC')"
+
+    - name: GitHub Push
+      uses: ad-m/github-push-action@v0.6.0
+      with:
+        force: true
+        directory: "."
+        github_token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Update README.md
       run: |
