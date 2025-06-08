@@ -1,6 +1,6 @@
 [![Market Data Update](https://github.com/cdw1p/Binance-OHLC-Live/actions/workflows/market-data-update.yml/badge.svg?branch=main)](https://github.com/cdw1p/Binance-OHLC-Live/actions/workflows/market-data-update.yml)
 
-### Last Update: 2025-06-01T02:16:37Z
+### Last Update: 2025-06-08T01:18:07Z
 
 ## Binance OHLC Live Data
 - This repository contains the live OHLC data for the Binance exchange.
